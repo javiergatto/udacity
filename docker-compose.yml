@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  app:
+    build:
+      context: .
+    env_file: .env
+    ports:
+      - "80:80"
+    restart: always
+    volumes:
+     - .:/var/www/html:delegated
+
+  jupyter:
+    build:
+      context: ./jupyter
+    ports:
+      - "8888:8888"
+    links:
+      - postgres
+    volumes:
+          - "./notebooks:/notebooks"
+          - "./data:/data"
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: data
+      POSTGRES_PASSWORD: data
+      POSTGRES_DB: data
+
