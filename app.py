@@ -6,6 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import SubmitField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
+import pandas as pd
 
 
 #custom modules
@@ -37,22 +38,30 @@ def upload_file():
             if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in app.config['UPLOAD_ALLOWED_EXTENSIONS']:
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
+
         return redirect('/results')
 
 @app.route('/results')
 def results():
 
-    configs = {
-        "corpus_base_file_path" : app.config['UPLOAD_PATH'],
-        "corpus_file_extenions" : ('.txt')
-    }
-    
-    tf_idf = TF_IDF(**configs)
-    tf_idf.run()
+    if not os.path.exists(app.config['UPLOAD_PATH'] + '/dataframe.csv'):
 
-    dataframe = tf_idf.term_frequency_inverse_document_frequency_df
+        configs = {
+            "corpus_base_file_path" : app.config['UPLOAD_PATH'],
+            "corpus_file_extenions" : ('.txt')
+        }
 
-    html = dataframe.sort_values(by='weight', ascending=False).head(30).to_html()
+        tf_idf = TF_IDF(**configs)
+        tf_idf.run()
+
+        dataframe = tf_idf.term_frequency_inverse_document_frequency_df
+        dataframe.to_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv')
+
+    else:
+
+        dataframe = pd.read_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv', index_col=0)
+
+    html = dataframe.drop(dataframe[dataframe.term.str.contains(' ')].index).dropna().sort_values(by='weight', ascending=True).head(100).to_html()
 
     return html
 
