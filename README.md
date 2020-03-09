@@ -1,4 +1,4 @@
-# TF-IDF Example with Jupyter Notebook!
+# TF-IDF Example with Jupyter Notebook
 
 ## Build and Run the Application  
   
@@ -21,4 +21,4 @@ hit the up arrow to revisit bash history and find 'jupyter notebook list' and hi
   > example output: http://0.0.0.0:8888/?token=fd54a13bceabddbda89ce0e66e31989a1b54f8eb9e650339 :: /notebooks  
   
 - Browse to http://localhost:8888/?token=<token_value>  
-  
+
