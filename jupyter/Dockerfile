@@ -30,4 +30,4 @@ COPY ./nltk_data/ /usr/share/nltk_data/
 VOLUME /notebooks
 WORKDIR /notebooks
 
-    RUN echo "jupyter notebook list" >> ~/.bash_history
+RUN echo "jupyter notebook list" >> ~/.bash_history

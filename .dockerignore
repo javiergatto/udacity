@@ -13,4 +13,3 @@ node_modules/
 .elasticbeanstalk/
 .aws/
 .ask/
-jupyter/Dockerfile

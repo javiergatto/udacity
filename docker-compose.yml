@@ -19,8 +19,8 @@ services:
     links:
       - postgres
     volumes:
-          - "./notebooks:/notebooks"
-          - "./data:/data"
+      - "./notebooks:/notebooks"
+      - "./data:/data"
 
   postgres:
     image: postgres
