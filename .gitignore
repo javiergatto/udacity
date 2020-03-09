@@ -127,11 +127,8 @@ node_modules/
 logs/
 tunnels
 tunnels.1
-otreeba/
 mysql_data/
 package-lock.json
-Dispensaries_Oregon.json
-dispensaries_data.txt
-
 .bash_history
+data/
 
