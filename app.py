@@ -20,7 +20,7 @@ app.config['UPLOAD_ALLOWED_EXTENSIONS'] = ['txt']
 
 @app.route('/')
 def home():
-    return render_template('portal.html')
+        return render_template('portal.html')
 
 @app.route('/upload', methods=['GET'])
 def upload_form():
