@@ -7,6 +7,7 @@ from wtforms import SubmitField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 import pandas as pd
+from pathlib import Path
 
 
 #custom modules
@@ -16,7 +17,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'supersecretkeygoeshere'
 app.config['UPLOAD_PATH'] = os.getcwd() + '/data/text'
-app.config['UPLOAD_ALLOWED_EXTENSIONS'] = ['txt']
+app.config['UPLOAD_ALLOWED_EXTENSIONS'] = ('.txt')
 
 @app.route('/')
 def home():
@@ -28,15 +29,24 @@ def upload_form():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+
     shutil.rmtree(app.config['UPLOAD_PATH'])
     os.mkdir(app.config['UPLOAD_PATH'])
+
     if request.method == 'POST':
+
         if 'files[]' not in request.files:
+
             return redirect(request.url)
+
         files = request.files.getlist('files[]')
+
         for file in files:
-            if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in app.config['UPLOAD_ALLOWED_EXTENSIONS']:
-                filename = secure_filename(file.filename)
+
+            filename = secure_filename(file.filename)
+
+            if Path(filename).suffix in app.config['UPLOAD_ALLOWED_EXTENSIONS']:
+
                 file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
 
         return redirect('/results')
@@ -48,20 +58,24 @@ def results():
 
         configs = {
             "corpus_base_file_path" : app.config['UPLOAD_PATH'],
-            "corpus_file_extenions" : ('.txt')
+            "corpus_file_extenions" : app.config['UPLOAD_ALLOWED_EXTENSIONS']
         }
 
         tf_idf = TF_IDF(**configs)
+
         tf_idf.run()
 
         dataframe = tf_idf.term_frequency_inverse_document_frequency_df
+
         dataframe.to_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv')
 
     else:
 
         dataframe = pd.read_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv', index_col=0)
 
-    html = dataframe.drop(dataframe[dataframe.term.str.contains(' ')].index).dropna().sort_values(by='weight', ascending=True).head(100).to_html()
+    dataframe['sentences_in'] = dataframe.sentences_in.apply(lambda x: str(x).replace("\n","<br>"))
+    dataframe['term'] = dataframe["term"].map(str) + "(" + dataframe["occurrences"].map(str) + ")"
+    html = dataframe.drop(dataframe[dataframe.term.str.contains(' ')].index).dropna().sort_values(by='weight', ascending=False).head(100).drop(['weight','occurrences'], axis=1).to_html(escape=False, index=False)
 
     return html
 
