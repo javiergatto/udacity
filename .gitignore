@@ -130,4 +130,5 @@ tunnels.1
 mysql_data/
 package-lock.json
 .bash_history
+data/text/
 
