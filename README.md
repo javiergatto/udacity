@@ -9,7 +9,7 @@
 - browse to http://localhost/  
   
 >Shell into main container
-> docker exec -it tf_idf_tf_idf_1 bash  
+> docker exec -it tf_idf_app_1 bash  
  
 ## Access the Jupyter Notebook 
   
