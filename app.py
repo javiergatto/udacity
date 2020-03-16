@@ -15,7 +15,7 @@ from lib import TF_IDF
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'supersecretkeygoeshere'
+app.config['SECRET_KEY'] = env('APP_SECRET_KEY')
 app.config['UPLOAD_PATH'] = os.getcwd() + '/data/text'
 app.config['UPLOAD_ALLOWED_EXTENSIONS'] = ('.txt')
 
@@ -30,52 +30,57 @@ def upload_form():
 @app.route('/upload', methods=['POST'])
 def upload_file():
 
-    shutil.rmtree(app.config['UPLOAD_PATH'])
+    if os.path.exists(app.config['UPLOAD_PATH']):
+
+        shutil.rmtree(app.config['UPLOAD_PATH'])
+
     os.mkdir(app.config['UPLOAD_PATH'])
 
-    if request.method == 'POST':
+    if 'files[]' not in request.files:
 
-        if 'files[]' not in request.files:
+        return redirect(request.url)
 
-            return redirect(request.url)
+    files = request.files.getlist('files[]')
 
-        files = request.files.getlist('files[]')
+    for file in files:
 
-        for file in files:
+        filename = secure_filename(file.filename)
 
-            filename = secure_filename(file.filename)
+        if Path(filename).suffix in app.config['UPLOAD_ALLOWED_EXTENSIONS']:
 
-            if Path(filename).suffix in app.config['UPLOAD_ALLOWED_EXTENSIONS']:
+            file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
 
-                file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
-
-        return redirect('/results')
+    return redirect('/results')
 
 @app.route('/results')
 def results():
 
-    if not os.path.exists(app.config['UPLOAD_PATH'] + '/dataframe.csv'):
+    configs = {
+        "corpus_base_file_path" : app.config['UPLOAD_PATH'],
+        "corpus_file_extenions" : app.config['UPLOAD_ALLOWED_EXTENSIONS']
+    }
 
-        configs = {
-            "corpus_base_file_path" : app.config['UPLOAD_PATH'],
-            "corpus_file_extenions" : app.config['UPLOAD_ALLOWED_EXTENSIONS']
-        }
+    tf_idf = TF_IDF(**configs)
 
-        tf_idf = TF_IDF(**configs)
+    dataframe_csv_file_path = os.path.join(tf_idf.corpus_base_file_path, 'dataframe.csv')
+
+    if not os.path.exists(dataframe_csv_file_path):
 
         tf_idf.run()
 
-        dataframe = tf_idf.term_frequency_inverse_document_frequency_df
+        dataframe = tf_idf.dataframe
 
-        dataframe.to_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv')
+        dataframe.to_csv(dataframe_csv_file_path)
 
     else:
 
-        dataframe = pd.read_csv(app.config['UPLOAD_PATH'] + '/dataframe.csv', index_col=0)
+        dataframe = pd.read_csv(dataframe_csv_file_path, index_col=0)
 
     dataframe['sentences_in'] = dataframe.sentences_in.apply(lambda x: str(x).replace("\n","<br>"))
+
     dataframe['term'] = dataframe["term"].map(str) + "(" + dataframe["occurrences"].map(str) + ")"
-    html = dataframe.drop(dataframe[dataframe.term.str.contains(' ')].index).dropna().sort_values(by='weight', ascending=False).head(100).drop(['weight','occurrences'], axis=1).to_html(escape=False, index=False)
+
+    html = dataframe.dropna().sort_values(by='occurrences', ascending=False).head(500).drop(['weight','occurrences'], axis=1).to_html(escape=False, index=False)
 
     return html
 
