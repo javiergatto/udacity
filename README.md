@@ -2,6 +2,8 @@
 
 ## Build and Run the Application  
   
+- cp .env.example .env   
+  
 - docker-compose up -d --build  
   
 - browse to http://localhost/  
