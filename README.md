@@ -9,12 +9,12 @@
 - browse to http://localhost/  
   
 >Shell into main container
-> docker exec -it tf_idf_app_1 bash  
+> docker exec -it udacity_app_1 bash
  
 ## Access the Jupyter Notebook 
   
 - Shell into jupyter container
-docker exec -it tf_idf_jupyter_1 bash  
+docker exec -it udacity_jupyter_1 bash
   
 - Run 
 jupyter notebook list
